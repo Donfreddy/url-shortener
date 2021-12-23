@@ -8,7 +8,7 @@ const router = express.Router();
  * @apiName RedirectUrl
  * @apiDescription Redirect to long URL
  */
-router.get('', async (req: Request, res: Response) => {
+router.get('/:code', async (req: Request, res: Response) => {
   const { code } = req.params;
 
   try {
@@ -17,7 +17,10 @@ router.get('', async (req: Request, res: Response) => {
 
     // If url is found, increase redirectCount and redirect to longUrl
     if (url) {
-      url.clicks++;
+      // Increase redirectCount
+      url.redirectCount += 1;
+
+      await UrlRepo.update(url);
       return res.redirect(url.longUrl);
     } else {
       return res.status(404).json({ error: 'Url not found' });

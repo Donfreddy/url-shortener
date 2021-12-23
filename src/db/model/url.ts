@@ -7,7 +7,7 @@ export default interface Url extends Document {
   urlCode: string;
   longUrl: string;
   shortUrl: string;
-  clicks: number;
+  redirectCount: number;
   date: string;
 }
 
@@ -26,14 +26,13 @@ const schema = new Schema(
       type: String,
       required: true,
     },
-    clicks: {
+    redirectCount: {
       type: Number,
-      required: true,
       default: 0,
     },
     date: {
       type: String,
-      default: Date.now,
+      default: new Date(),
     },
   },
   {

@@ -1,8 +1,6 @@
 import express, { Request, Response } from 'express';
-import shortid from 'shortid';
+import { validateUrl, generateUrlKey } from '../utils/util';
 import { baseUrl } from '../config';
-import validUrl from 'valid-url';
-import { UrlModel } from '../db/model/url';
 import UrlRepo from '../db/repository/UrlRepo';
 
 // creating express route handler
@@ -16,20 +14,20 @@ const router = express.Router();
 router.post('/shorten', async (req: Request, res: Response) => {
   const { longUrl } = req.body;
 
-  // Check if baseUrl is valid using balidUrl.isUri method
-  if (!validUrl.isUri(baseUrl)) {
+  // Check if baseUrl is valid
+  if (!validateUrl(baseUrl)) {
     return res.status(400).json({
-      error: 'Invalid base Url',
+      error: 'Internal error. Please come back later.',
     });
   }
 
   // if validUrl.isUri(baseUrl) is true
-  const urlCode = shortid.generate();
+  const urlCode = generateUrlKey();
 
-  // Check if longUrl is valid using validUrl.isUri method
-  if (!validUrl.isUri(longUrl)) {
+  // Check if longUrl is valid
+  if (!validateUrl(longUrl)) {
     return res.status(400).json({
-      error: 'Invalid long Url',
+      error: 'Invalid URL. Please enter a valid url for shortening',
     });
   }
 
@@ -41,18 +39,7 @@ router.post('/shorten', async (req: Request, res: Response) => {
     if (url) {
       return res.json(url);
     } else {
-      const shortUrl = `${baseUrl}/${urlCode}`;
-
-      // Create a new Url
-      url = new UrlModel({
-        urlCode,
-        longUrl,
-        shortUrl,
-        date: new Date(),
-      });
-
-      // Save url to database
-      await url.save();
+      url = await UrlRepo.create(baseUrl, longUrl);
 
       // Return shortUrl
       return res.json(url);
